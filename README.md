@@ -18,7 +18,16 @@ pip install tensorflow
 6. Instalar o actualizar matplotlib
 pip install matplotlib
 
-7. Ejecutar el servidor
+7. Instalar o actualizar sqlalchemy
+pip install sqlalchemy
+
+8. Instalar o actualizar psycopg2
+pip install psycopg2
+
+9. Instalar o actualizar python-multipart
+pip install python-multipart
+
+10. Ejecutar el servidor
 uvicorn app.main:app --reload
 
-8. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
+11. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
