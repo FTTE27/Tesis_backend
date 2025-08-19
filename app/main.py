@@ -25,7 +25,7 @@ MODELS_DIR = "models"
 CLASS_NAMES = ["BAC_PNEUMONIA", "NORMAL", "VIR_PNEUMONIA"]
 
 # Modelo inicial
-# classifier = ImageClassifier(os.path.join(MODELS_DIR, "densenet.h5"), class_names=CLASS_NAMES)
+classifier = ImageClassifier(os.path.join(MODELS_DIR, "densenet3.keras"), class_names=CLASS_NAMES)
 
 @app.post("/usuarios/", response_model=schemas.UsuarioOut)
 def crear_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
@@ -123,13 +123,8 @@ async def predict_image(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
         prediction = classifier.predict(image_bytes)
-        return {
-            "predictions": {
-                CLASS_NAMES[0]: prediction[0][0],
-                CLASS_NAMES[1]: prediction[0][1],
-                CLASS_NAMES[2]: prediction[0][2],
-            }
-        }
+        return prediction
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error procesando la imagen: {str(e)}")
 
