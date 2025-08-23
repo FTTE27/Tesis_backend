@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
+from fastapi.responses import JSONResponse
 from app.classifier import ImageClassifier
 from sqlalchemy.orm import Session
 from . import table, schemas, crud_db
@@ -123,6 +124,22 @@ async def predecir(file: UploadFile = File(...)):
         image_bytes = await file.read()
         prediccion = classifier.predict(image_bytes)
         return prediccion
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error procesando la imagen: {str(e)}")
+
+@app.post("/predecir_con_heatmap")
+async def predecir_con_heatmap(file: UploadFile = File(...)):
+    """
+    Endpoint para obtener la predicción junto con el mapa de calor
+    """
+    if not file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+        raise HTTPException(status_code=400, detail="La radiografía debe ser tipo .png, .jpg o .jpeg")
+    
+    try:
+        image_bytes = await file.read()
+        prediccion = classifier.predict_with_heatmap(image_bytes)
+        return JSONResponse(content=prediccion)
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error procesando la imagen: {str(e)}")
