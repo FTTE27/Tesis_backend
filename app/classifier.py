@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing import image
 from io import BytesIO
 from PIL import Image
@@ -12,6 +12,16 @@ class ImageClassifier:
         self.model_path = model_path
         self.model = load_model(model_path, compile=False)
         self.class_names = class_names
+        self.last_conv_layer_name = self._find_last_conv_layer()
+        
+    def _find_last_conv_layer(self):
+        """
+        Busca automáticamente la última capa convolucional en DenseNet201.
+        """
+        for layer in reversed(self.model.layers):
+            if isinstance(layer, tf.keras.layers.Conv2D):
+                return layer.name
+        raise ValueError("No se encontró ninguna capa convolucional en DenseNet201.")
 
     def preprocess_image(self, img_bytes, target_size=(224, 224)):
         img = Image.open(BytesIO(img_bytes)).convert("RGB")
@@ -36,38 +46,78 @@ class ImageClassifier:
             }
         }
 
-    def predict_with_heatmap(self, img_bytes):
-        img_array, original_img = self.preprocess_image(img_bytes)
-        img_array = tf.convert_to_tensor(img_array)
+    def make_gradcam_heatmap(self, img_array, predicted_class_idx):
+        grad_model = Model(
+            inputs=self.model.input,
+            outputs=[self.model.get_layer(self.last_conv_layer_name).output, self.model.output]
+        )
 
-        # --- Paso 1: Obtener la clase predicha ---
-        predictions = self.model(img_array, training=False)
-        predicted_class = tf.argmax(predictions[0])
-
-        # --- Paso 2: Calcular el saliency map ---
         with tf.GradientTape() as tape:
-            tape.watch(img_array)
-            predictions = self.model(img_array, training=False)
-            loss = predictions[:, predicted_class]
+            conv_outputs, predictions = grad_model(img_array)
 
-        grads = tape.gradient(loss, img_array)
-        grads = tf.reduce_max(tf.abs(grads), axis=-1)[0]  # Saliency por canal máximo
-        saliency = (grads - tf.reduce_min(grads)) / (tf.reduce_max(grads) - tf.reduce_min(grads) + 1e-8)
-        saliency = saliency.numpy()
+            # Forzar a que predictions sea tensor
+            if isinstance(predictions, (list, tuple)):
+                predictions = predictions[0]
 
-        # --- Paso 3: Crear el heatmap en color ---
-        heatmap = cm.jet(saliency)[:, :, :3]  # RGB
-        heatmap = Image.fromarray((heatmap * 255).astype(np.uint8)).resize(original_img.size)
+            # Calcular la pérdida sobre la clase predicha
+            loss = predictions[:, predicted_class_idx]
 
-        # --- Paso 4: Fusionar heatmap con la radiografía ---
-        fused = Image.blend(original_img.convert("RGBA"), heatmap.convert("RGBA"), alpha=0.5)
+        grads = tape.gradient(loss, conv_outputs)
+        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
 
-        # --- Paso 5: Convertir imagen fusionada a base64 ---
-        buffered = BytesIO()
-        fused.save(buffered, format="PNG")
-        heatmap_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        conv_outputs = conv_outputs[0]
+        heatmap = tf.reduce_sum(tf.multiply(pooled_grads, conv_outputs), axis=-1)
+        heatmap = tf.maximum(heatmap, 0)
+        heatmap = heatmap / (tf.reduce_max(heatmap) + 1e-8)
+        return heatmap.numpy()
 
-        return {
-            "predicted_class": self.class_names[int(predicted_class)],
-            "heatmap": heatmap_base64
-        }
+
+    def overlay_heatmap(self, heatmap, original_img, alpha=0.5, colormap="jet"):
+        """
+        Superpone el heatmap sobre la imagen original.
+        """
+        # Redimensionar heatmap al tamaño de la imagen original
+        heatmap = tf.image.resize(
+            heatmap[..., np.newaxis],  # Añadimos dimensión de canal
+            (original_img.size[1], original_img.size[0])
+        )
+        heatmap = tf.squeeze(heatmap).numpy()
+
+        # Aplicar colormap
+        jet = cm.get_cmap(colormap)
+        heatmap_colored = jet(heatmap)[:, :, :3]
+        heatmap_colored = (heatmap_colored * 255).astype(np.uint8)
+        heatmap_img = Image.fromarray(heatmap_colored).convert("RGBA")
+
+        # Convertir original a RGBA y fusionar
+        original_img_rgba = original_img.convert("RGBA")
+        superimposed = Image.blend(original_img_rgba, heatmap_img, alpha=alpha)
+        return superimposed
+
+    def predict_heatmap(self, img_bytes):
+        try:
+            img_array, original_img = self.preprocess_image(img_bytes)
+
+            predictions = self.model.predict(img_array)
+
+            # Forzar predictions a tensor
+            if isinstance(predictions, (list, tuple)):
+                predictions = predictions[0]
+
+            predicted_class_idx = np.argmax(predictions)
+            predicted_class = self.class_names[predicted_class_idx]
+
+            heatmap = self.make_gradcam_heatmap(img_array, predicted_class_idx)
+            superimposed = self.overlay_heatmap(heatmap, original_img, alpha=0.5)
+
+            buffered = BytesIO()
+            superimposed.save(buffered, format="PNG")
+            heatmap_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+            return {
+                "predicted_class": predicted_class,
+                "heatmap": heatmap_base64
+            }
+
+        except Exception as e:
+            raise Exception(f"Error procesando la imagen: {str(e)}")

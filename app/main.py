@@ -25,7 +25,7 @@ def get_db():
 MODELS_DIR = "models"
 CLASS_NAMES = ["BAC_PNEUMONIA", "NORMAL", "VIR_PNEUMONIA"]
 
-classifier = ImageClassifier(os.path.join(MODELS_DIR, "densenet3.keras"), class_names=CLASS_NAMES)
+classifier = ImageClassifier(os.path.join(MODELS_DIR, "densenet_no_encapsulado.keras"), class_names=CLASS_NAMES)
 
 @app.post("/usuarios/", response_model=schemas.UsuarioOut)
 async def crear_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
@@ -138,8 +138,9 @@ async def predecir_con_heatmap(file: UploadFile = File(...)):
     
     try:
         image_bytes = await file.read()
-        prediccion = classifier.predict_with_heatmap(image_bytes)
+        prediccion = classifier.predict_heatmap(image_bytes)
         return JSONResponse(content=prediccion)
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error procesando la imagen: {str(e)}")
+    
