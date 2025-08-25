@@ -7,14 +7,15 @@ class UsuarioBase(BaseModel):
     nombre: str
     username: str
     rol: str
+    disabled: bool
 
 class UsuarioCreate(UsuarioBase):
-    contraseña: str
+    password: str
 
 class UsuarioOut(UsuarioBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class RegistroBase(BaseModel):
