@@ -30,7 +30,13 @@ pip install python-multipart
 11. Instalar o actualizar opencv
 pip install opencv-python
 
-12. Ejecutar el servidor
+12. Intalar o actualizar passlib
+pip install passlib
+
+13. Instalar o actualizar jose
+pip install python-jose
+
+14. Ejecutar el servidor
 uvicorn app.main:app --reload
 
-13. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
+15. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
