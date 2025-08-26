@@ -27,7 +27,10 @@ pip install psycopg2
 9. Instalar o actualizar python-multipart
 pip install python-multipart
 
-10. Ejecutar el servidor
+11. Instalar o actualizar opencv
+pip install opencv-python
+
+12. Ejecutar el servidor
 uvicorn app.main:app --reload
 
-11. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
+13. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
