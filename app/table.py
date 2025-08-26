@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Time, Numeric, ForeignKey, LargeBinary
+from sqlalchemy import Column, Integer, String, Date, Time, Numeric, ForeignKey, LargeBinary, Boolean
 from sqlalchemy.orm import relationship
 from .database_connection import Base
 
@@ -8,7 +8,8 @@ class Usuario(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(100), nullable=False)
     username = Column(String(50), unique=True, nullable=False, index=True)
-    contraseña = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
+    disabled =  Column(Boolean, default=False)
     rol = Column(String(50), nullable=False)
 
     registros = relationship("Registro", back_populates="usuario")
