@@ -99,6 +99,8 @@ class ImageClassifier:
             img_array, original_img = self.preprocess_image(img_bytes)
 
             predictions = self.model.predict(img_array)
+            
+            probabilities = predictions[0]
 
             # Forzar predictions a tensor
             if isinstance(predictions, (list, tuple)):
@@ -116,7 +118,10 @@ class ImageClassifier:
 
             return {
                 "predicted_class": predicted_class,
-                "heatmap": heatmap_base64
+                "heatmap": heatmap_base64,
+                "probabilities": {
+                    self.class_names[i]: float(probabilities[i]) for i in range(len(self.class_names))
+                 }
             }
 
         except Exception as e:
