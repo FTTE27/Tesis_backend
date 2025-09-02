@@ -36,6 +36,7 @@ class Comentario(Base):
     __tablename__ = "comentarios"
 
     id = Column(Integer, primary_key=True, index=True)
+    titulo = Column(String(150), nullable=False)
     nombre = Column(String(100), nullable=False)
     correo = Column(String(150), nullable=False)
     mensaje = Column(String, nullable=False)

@@ -85,8 +85,8 @@ async def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
     # Crear el token de acceso con la información del usuario y tiempo de expiración
     access_token = {"sub": user.username,
                     "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_DURATION)}
-    # Retornar el token de acceso
-    return {"access_token": jwt.encode(access_token, SECRET, algorithm=ALGORITHM), "token_type": "bearer"}
+    # Retornar el token de acceso y el rol del usuario
+    return {"access_token": jwt.encode(access_token, SECRET, algorithm=ALGORITHM), "token_type": "bearer","rol": user.rol}
 
 @router.get("/me")
 async def get_profile(user: schemas.UsuarioOut = Depends(usuario_actual)):
