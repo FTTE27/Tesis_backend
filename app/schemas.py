@@ -39,6 +39,7 @@ class RegistroOut(RegistroBase):
 
 class ComentarioBase(BaseModel):
     nombre: str
+    titulo: str
     correo: str
     mensaje: str
 
