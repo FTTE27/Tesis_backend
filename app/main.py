@@ -37,10 +37,6 @@ def get_db():
     finally:
         db.close()
 
-# Lanzar la aplicación
-app = FastAPI()
-
-
 #Routers
 app.include_router(models.router) 
 app.include_router(auth_users.router)
