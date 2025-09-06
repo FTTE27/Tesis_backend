@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 DB_USER = "postgres"
-DB_PASSWORD = "123456"
+DB_PASSWORD = "admin"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "tesis"

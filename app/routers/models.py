@@ -11,11 +11,11 @@ router = APIRouter(
 )
 
 #Carpetas donde se guardaran los modelos
-MODELS_DIR = "models"
+MODELS_DIR = "classification_models"
 CLASS_NAMES = ["BAC_PNEUMONIA", "NORMAL", "VIR_PNEUMONIA"]  
 
 # Modelo inicial
-#classifier = ImageClassifier(os.path.join(MODELS_DIR, "densenet3.keras"), class_names=CLASS_NAMES)
+classifier = ImageClassifier(os.path.join(MODELS_DIR, "DN.keras"), class_names=CLASS_NAMES)
 
 
 @router.post("/predict")
@@ -39,7 +39,19 @@ async def predict_with_heatmap(file: UploadFile = File(...)):
 
     try:
         image_bytes = await file.read()
-        result = classifier.get_prediction_with_heatmap(image_bytes)
+        result = classifier.predict_heatmap(image_bytes)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generando heatmap: {str(e)}")
+
+@router.post("/predict_with_heatmap_first")
+async def predict_with_heatmap(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+        raise HTTPException(status_code=400, detail="La radiografía debe ser tipo .png, .jpg o .jpeg")
+
+    try:
+        image_bytes = await file.read()
+        result = classifier.predict_heatmap_principio(image_bytes)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generando heatmap: {str(e)}")

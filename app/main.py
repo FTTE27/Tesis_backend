@@ -1,12 +1,11 @@
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.database_connection import engine, SessionLocal, Base
 from app.routers import models, usuarios, auth_users, registros, comentarios
 
 from typing import List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from app.classifier import ImageClassifier
 from sqlalchemy.orm import Session
 from . import table, schemas, crud_db
 from .database_connection import engine, SessionLocal, Base
@@ -16,12 +15,20 @@ import shutil
 
 import uvicorn
 from passlib.hash import bcrypt
-from fastapi.middleware.cors import CORSMiddleware
+
 # Crear las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],          
+    allow_credentials=True,
+    allow_methods=["*"],            
+    allow_headers=["*"],            
+)
 
 def get_db():
     db = SessionLocal()
@@ -29,41 +36,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # => .../Tesis_backend/app
-PROJECT_DIR = os.path.dirname(BASE_DIR)                # => .../Tesis_backend
-MODELS_DIR = os.path.join(PROJECT_DIR, "classification_models")
-CLASS_NAMES = ["BAC_PNEUMONIA", "NORMAL", "VIR_PNEUMONIA"]
-
-classifier = ImageClassifier(os.path.join(MODELS_DIR, "densenet_no_encapsulado.keras"), class_names=CLASS_NAMES)
-
-@app.post("/usuarios/", response_model=schemas.UsuarioOut)
-async def crear_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
-    return crud_db.crear_usuario(db, usuario)
-
-@app.get("/usuarios/{user_id}", response_model=schemas.UsuarioOut)
-async def obtener_usuario(user_id: int, db: Session = Depends(get_db)):
-    usuario = crud_db.obtener_usuario(db, user_id)
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return usuario
-
-# Lanzar la aplicación
-app = FastAPI()
-
-# Permitir CORS desde Angular (localhost:4200)
-origins = [
-    "http://localhost:4200",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,          # dominios permitidos
-    allow_credentials=True,
-    allow_methods=["*"],            # permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],            # permite todas las cabeceras
-)
 
 #Routers
 app.include_router(models.router) 

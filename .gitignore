@@ -1,5 +1,6 @@
 venv/
 .env/
 __pycache__/
-models/
+classification_models/
 prueba/
+database_connection.py
