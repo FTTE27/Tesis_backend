@@ -16,6 +16,7 @@ import shutil
 
 import uvicorn
 from passlib.hash import bcrypt
+from fastapi.middleware.cors import CORSMiddleware
 # Crear las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
@@ -30,7 +31,9 @@ def get_db():
         db.close()
 
 
-MODELS_DIR = "models"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # => .../Tesis_backend/app
+PROJECT_DIR = os.path.dirname(BASE_DIR)                # => .../Tesis_backend
+MODELS_DIR = os.path.join(PROJECT_DIR, "classification_models")
 CLASS_NAMES = ["BAC_PNEUMONIA", "NORMAL", "VIR_PNEUMONIA"]
 
 classifier = ImageClassifier(os.path.join(MODELS_DIR, "densenet_no_encapsulado.keras"), class_names=CLASS_NAMES)
@@ -49,6 +52,18 @@ async def obtener_usuario(user_id: int, db: Session = Depends(get_db)):
 # Lanzar la aplicación
 app = FastAPI()
 
+# Permitir CORS desde Angular (localhost:4200)
+origins = [
+    "http://localhost:4200",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          # dominios permitidos
+    allow_credentials=True,
+    allow_methods=["*"],            # permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],            # permite todas las cabeceras
+)
 
 #Routers
 app.include_router(models.router) 
