@@ -89,5 +89,5 @@ async def model_info():
     return {
         "current_model": os.path.basename(classifier.model_path),
         "class_names": CLASS_NAMES,
-        "input_shape": (224, 224, 1)  
+        "input_shape": (224, 224, 3)  
     }

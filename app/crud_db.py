@@ -1,12 +1,18 @@
 from sqlalchemy.orm import Session
+from app.routers.auth_users import crypt
 from . import table, schemas
 
 def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
-    db_user = table.Usuario(**usuario.dict())
+    hashed_password = crypt.hash(usuario.password)
+    usuario_dict = usuario.dict()
+    usuario_dict["password"] = hashed_password
+
+    db_user = table.Usuario(**usuario_dict)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
 
 def obtener_usuario(db: Session, user_id: int):
     return db.query(table.Usuario).filter(table.Usuario.id == user_id).first()
