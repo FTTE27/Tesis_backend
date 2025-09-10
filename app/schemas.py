@@ -12,11 +12,19 @@ class UsuarioBase(BaseModel):
 class UsuarioCreate(UsuarioBase):
     password: str
 
+
+# Actualizar usuario → password opcional
+class UsuarioUpdate(BaseModel):
+    nombre: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    # rol y disabled mejor que no los exponga el admin aquí,
+    # solo se modifican en otros endpoints de seguridad
+
 class UsuarioOut(UsuarioBase):
     id: int
     class Config:
         from_attributes = True
-
 
 class RegistroBase(BaseModel):
     fecha: date
