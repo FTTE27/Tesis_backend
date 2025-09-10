@@ -31,7 +31,7 @@ pip install python-multipart
 pip install opencv-python
 
 11. Intalar o actualizar passlib
-pip install passlib
+pip install passlib[bcrypt]
 
 12. Instalar o actualizar jose
 pip install python-jose
