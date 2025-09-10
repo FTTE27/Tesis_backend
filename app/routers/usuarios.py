@@ -26,7 +26,7 @@ def obtener_todos_usuarios(db: Session = Depends(get_db)):
     return crud_db.obtener_todos_usuarios(db)
 
 @router.put("/{user_id}", response_model=schemas.UsuarioOut)
-def actualizar_usuario(user_id: int, usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+def actualizar_usuario(user_id: int, usuario: schemas.UsuarioUpdate, db: Session = Depends(get_db)):
     db_usuario = crud_db.actualizar_usuario(db, user_id, usuario)
     if not db_usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")

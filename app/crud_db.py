@@ -1,5 +1,9 @@
 from sqlalchemy.orm import Session
 from . import table, schemas
+from passlib.hash import bcrypt
+from app.routers.auth_users import crypt
+from passlib.context import CryptContext
+crypt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
     db_user = table.Usuario(**usuario.dict())
@@ -14,12 +18,24 @@ def obtener_usuario(db: Session, user_id: int):
 def obtener_todos_usuarios(db: Session):
     return db.query(table.Usuario).all()
 
-def actualizar_usuario(db: Session, user_id: int, usuario: schemas.UsuarioCreate):
+def actualizar_usuario(db: Session, user_id: int, usuario: schemas.UsuarioUpdate):
     db_usuario = obtener_usuario(db, user_id)
     if not db_usuario:
         return None
-    for key, value in usuario.dict().items():
+     # solo los campos que realmente se enviaron en la petición
+    update_data = usuario.dict(exclude_unset=True) 
+
+    # Si viene contraseña y no está vacía, la encriptamos
+    if "password" in update_data and update_data["password"]:
+        update_data["password"] = crypt.hash(update_data["password"])
+    elif "password" in update_data and not update_data["password"]:
+        # Si mandan password vacío, lo quitamos para no sobreescribir
+        update_data.pop("password")
+
+    # Aplicamos los cambios desde update_data (no desde usuario.dict())
+    for key, value in update_data.items():
         setattr(db_usuario, key, value)
+        
     db.commit()
     db.refresh(db_usuario)
     return db_usuario

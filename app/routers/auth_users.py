@@ -91,3 +91,8 @@ async def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
 @router.get("/me")
 async def get_profile(user: schemas.UsuarioOut = Depends(usuario_actual)):
     return user
+
+# Logout
+@router.post("/logout")
+async def logout():
+    return {"message": "Sesión cerrada correctamente"}
