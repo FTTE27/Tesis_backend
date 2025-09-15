@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, HTTPException
 from app.classifier import ImageClassifier
+from app import table
+from app.database_connection import get_db
+from sqlalchemy.orm import Session
+import requests
+from datetime import datetime
 import os
 import shutil
+import base64
 
 # Router 
 router = APIRouter(
@@ -34,13 +40,43 @@ async def predict_image(file: UploadFile = File(...)):
 
     
 @router.post("/predict_with_heatmap")
-async def predict_with_heatmap(file: UploadFile = File(...)):
+async def predict_with_heatmap(file: UploadFile = File(...), db: Session = Depends(get_db)):
     if not file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
         raise HTTPException(status_code=400, detail="La radiografía debe ser tipo .png, .jpg o .jpeg")
 
     try:
         image_bytes = await file.read()
         result = classifier.predict_heatmap(image_bytes)
+
+        heatmap_bytes = base64.b64decode(result["heatmap"])
+
+        nuevo_registro = table.Registro(
+            nombre_archivo=file.filename,
+            estado=result["predicted_class"],
+            probabilidad_sano=result["probabilities"].get("NORMAL"),
+            probabilidad_viral=result["probabilities"].get("VIR_PNEUMONIA"),
+            probabilidad_bacteriana=result["probabilities"].get("BAC_PNEUMONIA"),
+            username="Guest",
+            radiografia=heatmap_bytes
+        )
+
+        db.add(nuevo_registro)
+        db.commit()
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generando heatmap: {str(e)}")
+
+@router.post("/predict_with_heatmapnr")
+async def predict_with_heatmap(file: UploadFile = File(...)):
+    global actual_model
+    if not file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+        raise HTTPException(status_code=400, detail="La radiografía debe ser tipo .png, .jpg o .jpeg")
+
+    try:
+        image_bytes = await file.read()
+        result = classifier.predict_heatmap(image_bytes)
+       
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generando heatmap: {str(e)}")

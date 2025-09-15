@@ -4,6 +4,8 @@ from . import table, schemas
 from passlib.hash import bcrypt
 from app.routers.auth_users import crypt
 from passlib.context import CryptContext
+from fastapi.encoders import jsonable_encoder
+
 crypt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
@@ -55,11 +57,12 @@ def eliminar_usuario(db: Session, user_id: int):
     return db_usuario
 
 def crear_registro(db: Session, registro: schemas.RegistroCreate):
-    db_registro = table.Registro(**registro.dict())
+    db_registro = table.Registro(**registro.dict(exclude_unset=True))
     db.add(db_registro)
     db.commit()
     db.refresh(db_registro)
     return db_registro
+
 
 def obtener_registro(db: Session, registro_id: int):
     return db.query(table.Registro).filter(table.Registro.id == registro_id).first()
