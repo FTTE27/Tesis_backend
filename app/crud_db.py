@@ -1,17 +1,23 @@
 from sqlalchemy.orm import Session
+from app.routers.auth_users import crypt
 from . import table, schemas
 from passlib.hash import bcrypt
 from app.routers.auth_users import crypt
 from passlib.context import CryptContext
+from fastapi.encoders import jsonable_encoder
+
 crypt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
-    
+def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):  
     existe = db.query(table.Usuario).filter(table.Usuario.username == usuario.username).first()
     if existe:
         return None  # Ya existe el usuario
     try: 
-        db_user = table.Usuario(**usuario.dict())
+        hashed_password = crypt.hash(usuario.password)
+        usuario_dict = usuario.dict()
+        usuario_dict["password"] = hashed_password
+
+        db_user = table.Usuario(**usuario_dict)
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -21,6 +27,7 @@ def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
         db.rollback()
         return None
     
+
 
 def obtener_usuario(db: Session, user_id: int):
     return db.query(table.Usuario).filter(table.Usuario.id == user_id).first()
@@ -58,12 +65,21 @@ def eliminar_usuario(db: Session, user_id: int):
     db.commit()
     return db_usuario
 
-def crear_registro(db: Session, registro: schemas.RegistroCreate):
-    db_registro = table.Registro(**registro.dict())
+def crear_registro(db: Session, registro: schemas.RegistroCreate, username: str):
+    db_registro = table.Registro(
+        nombre_archivo=registro.nombre_archivo,
+        probabilidad_sano=registro.probabilidad_sano,
+        probabilidad_viral=registro.probabilidad_viral,
+        probabilidad_bacteriana=registro.probabilidad_bacteriana,
+        estado=registro.estado,
+        username=username,
+        radiografia=registro.radiografia.encode("utf-8") if registro.radiografia else None
+    )
     db.add(db_registro)
     db.commit()
     db.refresh(db_registro)
     return db_registro
+
 
 def obtener_registro(db: Session, registro_id: int):
     return db.query(table.Registro).filter(table.Registro.id == registro_id).first()

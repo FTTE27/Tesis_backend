@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from ..database_connection import get_db
 from sqlalchemy.orm import Session
+from typing import Optional
 # Algoritmo de encriptación
 ALGORITHM = "HS256"
 # Tiempo de duración del token en minutos
@@ -57,7 +58,21 @@ async def usuario_autenticado(token: str = Depends(oauth2), db: Session = Depend
     except JWTError:
         raise exception
     return buscar_usuario(username, db) 
+
+
+
+async def usuario_opcional(token: Optional[str] = Depends(oauth2), db: Session = Depends(get_db)):
+    if not token:
+        return None  # No hay token → retornamos None
     
+    try:
+        username = jwt.decode(token, SECRET, algorithms=[ALGORITHM]).get("sub")
+        if not username:
+            return None
+        return buscar_usuario(username, db)
+    except JWTError:
+        return None
+
 
 # Obtener usuario actual solo si esta autenticado    
 async def usuario_actual(user: schemas.UsuarioOut = Depends(usuario_autenticado)):
@@ -66,6 +81,7 @@ async def usuario_actual(user: schemas.UsuarioOut = Depends(usuario_autenticado)
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Usuario inactivo")
     return user
+
 
 #Login
 @router.post("/login")
