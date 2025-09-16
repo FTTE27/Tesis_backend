@@ -3,6 +3,8 @@ from typing import List
 from sqlalchemy.orm import Session
 from app import schemas, crud_db
 from app.database_connection import get_db
+from app.routers.auth_users import usuario_opcional
+
 
 router = APIRouter(
     prefix="/registros",
@@ -12,8 +14,15 @@ router = APIRouter(
 
 
 @router.post("/", response_model=schemas.RegistroOut)
-def crear_registro(registro: schemas.RegistroCreate, db: Session = Depends(get_db)):
-    return crud_db.crear_registro(db, registro)
+def crear_registro(
+    registro: schemas.RegistroCreate,
+    db: Session = Depends(get_db),
+    current_user: schemas.UsuarioOut = Depends(usuario_opcional)
+):
+    # Si no hay usuario → Guest
+    username = current_user.username if current_user else "Guest"
+    return crud_db.crear_registro(db, registro, username)
+
 
 @router.get("/{registro_id}", response_model=schemas.RegistroOut)
 def obtener_registro(registro_id: int, db: Session = Depends(get_db)):

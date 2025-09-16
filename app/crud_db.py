@@ -56,8 +56,16 @@ def eliminar_usuario(db: Session, user_id: int):
     db.commit()
     return db_usuario
 
-def crear_registro(db: Session, registro: schemas.RegistroCreate):
-    db_registro = table.Registro(**registro.dict(exclude_unset=True))
+def crear_registro(db: Session, registro: schemas.RegistroCreate, username: str):
+    db_registro = table.Registro(
+        nombre_archivo=registro.nombre_archivo,
+        probabilidad_sano=registro.probabilidad_sano,
+        probabilidad_viral=registro.probabilidad_viral,
+        probabilidad_bacteriana=registro.probabilidad_bacteriana,
+        estado=registro.estado,
+        username=username,
+        radiografia=registro.radiografia.encode("utf-8") if registro.radiografia else None
+    )
     db.add(db_registro)
     db.commit()
     db.refresh(db_registro)
