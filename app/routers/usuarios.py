@@ -12,7 +12,10 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.UsuarioOut)
 def crear_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
-    return crud_db.crear_usuario(db, usuario)
+    db_user = crud_db.crear_usuario(db, usuario)
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Este usuario ya ha sido registrado")
+    return db_user
 
 @router.get("/{user_id}", response_model=schemas.UsuarioOut)
 def obtener_usuario(user_id: int, db: Session = Depends(get_db)):
