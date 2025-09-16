@@ -8,16 +8,25 @@ from fastapi.encoders import jsonable_encoder
 
 crypt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
-    hashed_password = crypt.hash(usuario.password)
-    usuario_dict = usuario.dict()
-    usuario_dict["password"] = hashed_password
+def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):  
+    existe = db.query(table.Usuario).filter(table.Usuario.username == usuario.username).first()
+    if existe:
+        return None  # Ya existe el usuario
+    try: 
+        hashed_password = crypt.hash(usuario.password)
+        usuario_dict = usuario.dict()
+        usuario_dict["password"] = hashed_password
 
-    db_user = table.Usuario(**usuario_dict)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+        db_user = table.Usuario(**usuario_dict)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    # Error si no dio estan todos los datos obligatorios
+    except Exception as e:
+        db.rollback()
+        return None
+    
 
 
 def obtener_usuario(db: Session, user_id: int):

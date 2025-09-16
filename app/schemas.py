@@ -1,16 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
 from datetime import date, time
-from typing import Optional
+from typing import Optional, Annotated
 
 
 class UsuarioBase(BaseModel):
-    nombre: str
-    username: str
-    rol: str
+    nombre: Annotated[str, StringConstraints(min_length=1, max_length=100)]
+    username: Annotated[str, StringConstraints(min_length=1, max_length=50)]
+    rol: Annotated[str, StringConstraints(min_length=1, max_length=50)]
     disabled: bool
 
 class UsuarioCreate(UsuarioBase):
-    password: str
+    password: Annotated[str, StringConstraints(min_length=1, max_length=255)]
 
 class UsuarioUpdate(BaseModel):
     nombre: Optional[str] = None

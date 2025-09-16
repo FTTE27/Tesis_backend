@@ -37,4 +37,4 @@ class Comentario(Base):
     nombre = Column(String(100), nullable=False)
     correo = Column(String(150), nullable=False)
     mensaje = Column(String, nullable=False)
-    archivo = Column(LargeBinary)
+
