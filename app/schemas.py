@@ -41,6 +41,14 @@ class RegistroOut(RegistroBase):
     class Config:
         orm_mode = True
 
+class RegistroEsp(RegistroBase):
+    id: int
+    fecha: date
+    hora: time
+    radiografia: str | None
+    class Config:
+        orm_mode = True
+
 class ComentarioBase(BaseModel):
     nombre: str
     titulo: str
