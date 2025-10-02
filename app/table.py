@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Time, Numeric, ForeignKey, LargeBinary, Boolean, text
+from sqlalchemy import Column, Integer, String, Date, Time, Numeric, ForeignKey, LargeBinary, Boolean, text, Text
 from sqlalchemy.orm import relationship
 from .database_connection import Base
 
@@ -27,7 +27,7 @@ class Registro(Base):
     probabilidad_bacteriana = Column(Numeric(5,2))
     estado = Column(String(50), nullable=False)
     username = Column(String(50), server_default=text("'Guest'"))
-    radiografia = Column(LargeBinary)
+    radiografia = Column(Text)
 
 class Comentario(Base):
     __tablename__ = "comentarios"

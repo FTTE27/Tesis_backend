@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, HTTPException
 from app.classifier import ImageClassifier
-from app import table
+from app import table, schemas
 from app.database_connection import get_db
+from app.routers.auth_users import usuario_opcional
 from sqlalchemy.orm import Session
 import requests
 from datetime import datetime
@@ -40,15 +41,15 @@ async def predict_image(file: UploadFile = File(...)):
 
     
 @router.post("/predict_with_heatmap")
-async def predict_with_heatmap(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def predict_with_heatmap(file: UploadFile = File(...), db: Session = Depends(get_db), usuario = Depends(usuario_opcional)):
     if not file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
         raise HTTPException(status_code=400, detail="La radiografía debe ser tipo .png, .jpg o .jpeg")
 
     try:
         image_bytes = await file.read()
         result = classifier.predict_heatmap(image_bytes)
-
-        heatmap_bytes = base64.b64decode(result["heatmap"])
+        
+        username = usuario["username"] if usuario else "Guest"
 
         nuevo_registro = table.Registro(
             nombre_archivo=file.filename,
@@ -56,8 +57,8 @@ async def predict_with_heatmap(file: UploadFile = File(...), db: Session = Depen
             probabilidad_sano=result["probabilities"].get("NORMAL"),
             probabilidad_viral=result["probabilities"].get("VIR_PNEUMONIA"),
             probabilidad_bacteriana=result["probabilities"].get("BAC_PNEUMONIA"),
-            username="Guest",
-            radiografia=heatmap_bytes
+            username=username,
+            radiografia=result["heatmap"]
         )
 
         db.add(nuevo_registro)

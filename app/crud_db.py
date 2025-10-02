@@ -73,7 +73,7 @@ def crear_registro(db: Session, registro: schemas.RegistroCreate, username: str)
         probabilidad_bacteriana=registro.probabilidad_bacteriana,
         estado=registro.estado,
         username=username,
-        radiografia=registro.radiografia.encode("utf-8") if registro.radiografia else None
+        radiografia=registro.radiografia
     )
     db.add(db_registro)
     db.commit()
