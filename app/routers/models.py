@@ -53,7 +53,7 @@ async def predict_with_heatmap(file: UploadFile = File(...), db: Session = Depen
 
         nuevo_registro = table.Registro(
             nombre_archivo=file.filename,
-            estado=result["predicted_class"],
+            estado=actual_model,
             probabilidad_sano=result["probabilities"].get("NORMAL"),
             probabilidad_viral=result["probabilities"].get("VIR_PNEUMONIA"),
             probabilidad_bacteriana=result["probabilities"].get("BAC_PNEUMONIA"),
