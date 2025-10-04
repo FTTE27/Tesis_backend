@@ -49,7 +49,8 @@ async def predict_with_heatmap(file: UploadFile = File(...), db: Session = Depen
         image_bytes = await file.read()
         result = classifier.predict_heatmap(image_bytes)
         
-        username = usuario["username"] if usuario else "Guest"
+        username = usuario.username if usuario else "Guest"
+
 
         nuevo_registro = table.Registro(
             nombre_archivo=file.filename,

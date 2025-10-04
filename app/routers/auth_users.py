@@ -62,16 +62,19 @@ async def usuario_autenticado(token: str = Depends(oauth2), db: Session = Depend
 
 
 async def usuario_opcional(token: Optional[str] = Depends(oauth2), db: Session = Depends(get_db)):
+    print(">>> Token recibido:", token)
     if not token:
-        return None  # No hay token → retornamos None
-    
+        return None
     try:
         username = jwt.decode(token, SECRET, algorithms=[ALGORITHM]).get("sub")
+        print(">>> Username decodificado:", username)
         if not username:
             return None
         return buscar_usuario(username, db)
-    except JWTError:
+    except JWTError as e:
+        print(">>> Error JWT:", e)
         return None
+
 
 
 # Obtener usuario actual solo si esta autenticado    
