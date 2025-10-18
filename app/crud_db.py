@@ -11,7 +11,7 @@ crypt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):  
     existe = db.query(table.Usuario).filter(table.Usuario.username == usuario.username).first()
     if existe:
-        return None  # Ya existe el usuario
+        return None 
     try: 
         hashed_password = crypt.hash(usuario.password)
         usuario_dict = usuario.dict()
@@ -22,7 +22,6 @@ def crear_usuario(db: Session, usuario: schemas.UsuarioCreate):
         db.commit()
         db.refresh(db_user)
         return db_user
-    # Error si no dio estan todos los datos obligatorios
     except Exception as e:
         db.rollback()
         return None

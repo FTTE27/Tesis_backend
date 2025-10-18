@@ -20,7 +20,6 @@ def crear_registro(
     db: Session = Depends(get_db),
     current_user: schemas.UsuarioOut = Depends(usuario_opcional)
 ):
-    # Si no hay usuario → Guest
     username = current_user.username if current_user else "Guest"
     return crud_db.crear_registro(db, registro, username)
 

@@ -6,37 +6,22 @@ python -m venv venv
 2. Activar el entorno virtual
 venv\Scripts\activate
 
-3. Instalar o actualizar fastapi
-pip install fastapi uvicorn
+3. Instalar requirements.txt
+pip install -r requirements.txt
 
-4. Instalar o actualizar keras 
-pip install keras
-
-5. Instalar o actualizar tensorflow
-pip install tensorflow
-
-6. Instalar o actualizar matplotlib
-pip install matplotlib
-
-7. Instalar o actualizar sqlalchemy
-pip install sqlalchemy
-
-8. Instalar o actualizar psycopg2
-pip install psycopg2
-
-9. Instalar o actualizar python-multipart
-pip install python-multipart
-
-10. Instalar o actualizar opencv
-pip install opencv-python
-
-11. Intalar o actualizar passlib
-pip install passlib[bcrypt]
-
-12. Instalar o actualizar jose
-pip install python-jose
-
-13. Ejecutar el servidor
+4. Ejecutar el servidor
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-15. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
+5. Se ejecuta de manera predeterminada en http://127.0.0.1:8000
+
+// Pruebas
+
+Para el desarrollo de las pruebas se tienen las siguientes recomendaciones:
+    Unit
+    1. Las pruebas se ejecutan con cada script de python.
+    2. Al ser pruebas de únicamente el modulo, no necesita de iniciar el sistema backend para ser realizadas.
+
+    Load
+    1. Se requiere de tener k6 en el equipo.
+    2. Las pruebas se separan por los principales métodos de los endpoints para facilitar las operaciones.
+    3. Se ejecuta test_{nombre del modulo} para ejecutar todas las pruebas del módulo.

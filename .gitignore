@@ -3,4 +3,5 @@ venv/
 __pycache__/
 classification_models/
 prueba/
+prueba_carga/
 database_connection.py
