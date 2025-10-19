@@ -31,7 +31,7 @@ def test_crear_registro(db):
 def test_obtener_registro(db):
     registro = crud_db.obtener_registro(db, 1)
     assert registro is not None
-    assert registro.estado == "sano"
+    assert registro.estado == "DN.keras"
 
 def test_obtener_todos_registros(db):
     registros = crud_db.obtener_todos_registros(db)

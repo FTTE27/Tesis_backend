@@ -5,3 +5,4 @@ classification_models/
 prueba/
 prueba_carga/
 database_connection.py
+.pytest_cache/
