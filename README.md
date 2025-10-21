@@ -25,3 +25,6 @@ Para el desarrollo de las pruebas se tienen las siguientes recomendaciones:
     1. Se requiere de tener k6 en el equipo.
     2. Las pruebas se separan por los principales métodos de los endpoints para facilitar las operaciones.
     3. Se ejecuta test_{nombre del modulo} para ejecutar todas las pruebas del módulo.
+    4. Comando para ejecutar con resultados en json
+
+        k6 run --out json={nombre de archivo json a crear}.json {prueba a realizar}

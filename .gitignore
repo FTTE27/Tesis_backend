@@ -6,3 +6,4 @@ prueba/
 prueba_carga/
 database_connection.py
 .pytest_cache/
+node_modules/

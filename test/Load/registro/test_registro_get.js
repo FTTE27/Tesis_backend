@@ -11,7 +11,6 @@ export default function () {
   check(res, {
     'registros obtenidos (200)': (r) => r.status === 200,
   });
-l
   const id = Math.floor(Math.random() * 200) + 1;
   const res2 = http.get(`http://localhost:8000/registros/${id}`);
   check(res2, {

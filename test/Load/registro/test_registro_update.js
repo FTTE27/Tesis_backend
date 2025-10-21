@@ -16,7 +16,7 @@ export default function () {
     probabilidad_bacteriana: Math.random() * 100,
     estado: ['Sano', 'Viral', 'Bacteriana'][Math.floor(Math.random() * 3)],
     username: 'TesterUpdate',
-    radiografia: 'data:image/png;base64,' + btoa('imagen_actualizada')
+    radiografia: 'nuevo'
   });
 
   const params = {

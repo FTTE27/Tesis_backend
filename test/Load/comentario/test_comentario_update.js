@@ -10,8 +10,10 @@ export default function () {
   const id = Math.floor(Math.random() * 200) + 1; 
   const url = `http://localhost:8000/comentarios/${id}`;
   const payload = JSON.stringify({
-    titulo: 'Comentario actualizado',
-    mensaje: 'Texto actualizado en la prueba.',
+    titulo: `Comentario ${Math.random().toString(36).substring(7)} Actualizado`,
+    nombre: 'Usuario Test',
+    correo: 'test@example.com',
+    mensaje: 'Este comentario fue actualizado.'
   });
 
   const params = {

@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check } from 'k6';
-import { open } from 'k6/fs';
+
+const img = open('./IM-0001-0001.jpeg', 'b');
 
 export const options = {
   vus: 50,
@@ -9,13 +10,16 @@ export const options = {
 
 export default function () {
   const url = 'http://localhost:8000/models/predict';
-  const img = open('./test_image.jpg', 'b'); 
 
   const formData = {
     file: http.file(img, 'radiografia.jpg', 'image/jpeg'),
   };
 
-  const res = http.post(url, formData);
+  const params = {
+    timeout: '180s',
+  };
+
+  const res = http.post(url, formData, params);
 
   check(res, {
     'predicción exitosa (200)': (r) => r.status === 200,

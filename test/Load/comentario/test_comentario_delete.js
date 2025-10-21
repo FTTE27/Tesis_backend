@@ -7,20 +7,10 @@ export const options = {
 };
 
 export default function () {
-  const id = Math.floor(Math.random() * 200) + 1; 
-  const url = `http://localhost:8000/comentarios/${id}`;
-  const payload = JSON.stringify({
-    titulo: 'Comentario actualizado',
-    mensaje: 'Texto actualizado en la prueba.',
-  });
-
-  const params = {
-    headers: { 'Content-Type': 'application/json' },
-  };
-
-  const res = http.put(url, payload, params);
+  const id = Math.floor(Math.random() * 200) + 1;
+  const res = http.del(`http://localhost:8000/comentarios/${id}`);
 
   check(res, {
-    'comentario actualizado (200)': (r) => r.status === 200,
+    'comentario eliminado (200)': (r) => r.status === 200 ,
   });
 }
