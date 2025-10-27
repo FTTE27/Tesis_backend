@@ -3,12 +3,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app import table, schemas, crud_db
 
-# Base de datos temporal en memoria
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Fixture para la sesión de base de datos
 @pytest.fixture(scope="module")
 def db():
     table.Base.metadata.create_all(bind=engine)

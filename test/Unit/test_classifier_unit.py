@@ -10,22 +10,18 @@ import tensorflow as tf
 
 @pytest.fixture
 def dummy_model():
-    # Definir entradas funcionales
     inputs = tf.keras.Input(shape=(224, 224, 3), name="input_layer")
 
-    # Una capa convolucional simulada
     x = tf.keras.layers.Conv2D(8, (3, 3), activation="relu", name="conv_layer")(inputs)
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     outputs = tf.keras.layers.Dense(3, activation="softmax", name="output_layer")(x)
 
-    # Crear modelo funcional
     model = tf.keras.Model(inputs=inputs, outputs=outputs, name="dummy_model")
     return model
 
 
 @pytest.fixture
 def classifier(dummy_model):
-    # Simular carga de modelo con patch
     with patch("app.classifier.load_model", return_value=dummy_model):
         return ImageClassifier("fake_model.h5", ["sano", "viral", "bacteriana"])
 
