@@ -79,9 +79,6 @@ class ImageClassifier:
 
 
     def overlay_heatmap(self, heatmap, original_img, alpha=0.5, colormap="jet"):
-        """
-        Superpone el heatmap sobre la imagen original.
-        """
         # Redimensionar heatmap al tamaño de la imagen original
         heatmap = tf.image.resize(
             heatmap[..., np.newaxis],  # Añadimos dimensión de canal
@@ -133,59 +130,4 @@ class ImageClassifier:
         except Exception as e:
             raise Exception(f"Error procesando la imagen: {str(e)}")
 
-    def predict_heatmap_principio(self, img_bytes):
-        try:
-            img_array, original_img = self.preprocess_image(img_bytes)
-
-            predictions = self.model.predict(img_array)
-            
-            probabilities = predictions[0]
-
-            # Forzar predictions a tensor
-            if isinstance(predictions, (list, tuple)):
-                predictions = predictions[0]
-
-            predicted_class_idx = np.argmax(predictions)
-            predicted_class = self.class_names[predicted_class_idx]
-
-            heatmap = self.make_gradcam_heatmap_principio(img_array, predicted_class_idx)
-            superimposed = self.overlay_heatmap(heatmap, original_img, alpha=0.5)
-
-            buffered = BytesIO()
-            superimposed.save(buffered, format="PNG")
-            heatmap_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-
-            return {
-                "predicted_class": predicted_class,
-                "heatmap": heatmap_base64,
-                "probabilities": {
-                    self.class_names[i]: float(probabilities[i]) for i in range(len(self.class_names))
-                 }
-            }
-
-        except Exception as e:
-            raise Exception(f"Error procesando la imagen: {str(e)}")
-    def make_gradcam_heatmap_principio(self, img_array, predicted_class_idx):
-        grad_model = Model(
-            inputs=self.model.input,
-            outputs=[self.model.get_layer(self.first_conv_layer_name).output, self.model.output]
-        )
-
-        with tf.GradientTape() as tape:
-            conv_outputs, predictions = grad_model(img_array)
-
-            # Forzar a que predictions sea tensor
-            if isinstance(predictions, (list, tuple)):
-                predictions = predictions[0]
-
-            # Calcular la pérdida sobre la clase predicha
-            loss = predictions[:, predicted_class_idx]
-
-        grads = tape.gradient(loss, conv_outputs)
-        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-
-        conv_outputs = conv_outputs[0]
-        heatmap = tf.reduce_sum(tf.multiply(pooled_grads, conv_outputs), axis=-1)
-        heatmap = tf.maximum(heatmap, 0)
-        heatmap = heatmap / (tf.reduce_max(heatmap) + 1e-8)
-        return heatmap.numpy()
+   

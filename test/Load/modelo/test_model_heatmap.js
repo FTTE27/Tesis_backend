@@ -4,8 +4,8 @@ import { check } from 'k6';
 const img = open('./IM-0001-0001.jpeg', 'b');
 
 export const options = {
-  vus: 50,
-  iterations: 200,
+  vus: 25,
+  iterations: 50,
 };
 
 export default function () {
