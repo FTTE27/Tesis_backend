@@ -31,6 +31,7 @@ crypt = CryptContext(schemes=["bcrypt"])
 SECRET = "201d573bd7d1344d3a3bfce1550b69102fd11be3db6d379508b6cccc58ea230b"
 
 
+
 # buscar usuario en la base de datos exponiendo la contraseña
 def buscar_usuario_db(username: str, db: Session):
     return db.query(db_models.Usuario).filter(db_models.Usuario.username == username).first()
@@ -50,14 +51,23 @@ async def usuario_autenticado(token: str = Depends(oauth2), db: Session = Depend
         detail="Credenciales de autenticación inválidas",
         headers={"WWW-Authenticate": "Bearer"})
 
+    if not token:
+        raise exception
+    
     try:
-        username = jwt.decode(token, SECRET, algorithms=[ALGORITHM]).get("sub")
+        claims = jwt.decode(token, SECRET, algorithms=[ALGORITHM]).get("sub")
+        username = claims.get("sub") # Obtener el nombre de usuario del token
         if username is None:
             raise exception
 
     except JWTError:
         raise exception
-    return buscar_usuario(username, db) 
+    
+    user = buscar_usuario(username, db)
+    
+    if not user:
+        raise exception
+    return user
 
 
 
@@ -100,10 +110,12 @@ async def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="La contraseña no es correcta")
     # Crear el token de acceso con la información del usuario y tiempo de expiración
-    access_token = {"sub": user.username,
+    access_token_payload = {"sub": user.username,
+                            "rol": user.rol,
                     "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_DURATION)}
     # Retornar el token de acceso y el rol del usuario
-    return {"access_token": jwt.encode(access_token, SECRET, algorithm=ALGORITHM), "token_type": "bearer","rol": user.rol}
+    token = jwt.encode(access_token_payload, SECRET, algorithm=ALGORITHM)
+    return {"access_token": token, "token_type": "bearer","rol": user.rol}
 
 @router.get("/me")
 async def get_profile(user: schemas.UsuarioOut = Depends(usuario_actual)):
@@ -113,3 +125,19 @@ async def get_profile(user: schemas.UsuarioOut = Depends(usuario_actual)):
 @router.post("/logout")
 async def logout():
     return {"message": "Sesión cerrada correctamente"}
+
+# Middleware para verificar el rol del usuario
+def require_role(required_role: str):
+    async def _require_role(user: schemas.UsuarioOut = Depends(usuario_actual)):
+        if user.rol != required_role:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tiene permisos para acceder a este recurso")
+        return user
+    return _require_role
+
+# Middleware para verificar múltiples roles
+def require_roles(*roles: str):
+    async def _require_roles(user: schemas.UsuarioOut = Depends(usuario_actual)):
+        if user.rol not in roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tiene permisos")
+        return user
+    return _require_roles
