@@ -23,5 +23,6 @@ export default function () {
 
   check(res, {
     'comentario creado (200)': (r) => r.status === 201 || r.status === 200,
+    'contiene titulo': (r) => r.body.includes('titulo'),
   });
 }
